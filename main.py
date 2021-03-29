@@ -1,37 +1,37 @@
 import numpy as np
 import scipy.special
-import matplotlib.pyplot
 
 
-class neuralNetwork:
+class NeuralNetwork:
 
-    def __init__(self, inputnodes, hiddennodes, outputnodes, learningrate):
-        self.inodes = inputnodes
-        self.hnodes = hiddennodes
-        self.onodes = outputnodes
-        self.wih = np.random.normal(0.0, pow(self.hnodes, -0.5), (self.hnodes, self.inodes))
-        self.who = np.random.normal(0.0, pow(self.onodes, -0.5), (self.onodes, self.hnodes))
-        self.lr = learningrate
+    def __init__(self, input_nodes, hidden_nodes, output_nodes, learning_rate):
+        self.input_nodes = input_nodes
+        self.hidden_nodes = hidden_nodes
+        self.output_nodes = output_nodes
+        self.wih = np.random.normal(0.0, pow(self.hidden_nodes, -0.5), (self.hidden_nodes, self.input_nodes))
+        self.who = np.random.normal(0.0, pow(self.output_nodes, -0.5), (self.output_nodes, self.hidden_nodes))
+        self.learning_rate = learning_rate
         self.activation_function = lambda x: scipy.special.expit(x)
         pass
 
     def train(self, inputs_list, targets_list):
-        inputs = np.array(inputs_list, ndmin=2).T
-        targets = np.array(targets_list, ndmin=2).T
-        hidden_inputs = np.dot(self.wih, inputs)
+        train_inputs = np.array(inputs_list, ndmin=2).T
+        train_targets = np.array(targets_list, ndmin=2).T
+        hidden_inputs = np.dot(self.wih, train_inputs)
         hidden_outputs = self.activation_function(hidden_inputs)
         final_inputs = np.dot(self.who, hidden_outputs)
         final_outputs = self.activation_function(final_inputs)
-        output_errors = targets - final_outputs
+        output_errors = train_targets - final_outputs
         hidden_errors = np.dot(self.who.T, output_errors)
-        self.who += self.lr * np.dot((output_errors * final_outputs * (1.0 - final_outputs)),
-                                     np.transpose(hidden_outputs))
-        self.wih += self.lr * np.dot((hidden_errors * hidden_outputs * (1.0 - hidden_outputs)), np.transpose(inputs))
+        self.who += self.learning_rate * np.dot((output_errors * final_outputs * (1.0 - final_outputs)),
+                                                np.transpose(hidden_outputs))
+        self.wih += self.learning_rate * np.dot((hidden_errors * hidden_outputs * (1.0 - hidden_outputs)),
+                                                np.transpose(train_inputs))
         pass
 
     def query(self, inputs_list):
-        inputs = np.array(inputs_list, ndmin=2).T
-        hidden_inputs = np.dot(self.wih, inputs)
+        _inputs = np.array(inputs_list, ndmin=2).T
+        hidden_inputs = np.dot(self.wih, _inputs)
         hidden_outputs = self.activation_function(hidden_inputs)
         final_inputs = np.dot(self.who, hidden_outputs)
         final_outputs = self.activation_function(final_inputs)
@@ -39,23 +39,23 @@ class neuralNetwork:
         return final_outputs
 
 
-input_nodes = 784
-hidden_nodes = 200
-output_nodes = 10
-learning_rate = 0.1
-epochs = 5
+INPUT_NODES = 784
+HIDDEN_NODES = 200
+OUTPUT_NODES = 10
+LEARNING_RATE = 0.1
+EPOCHS = 5
 
-n = neuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
+n = NeuralNetwork(INPUT_NODES, HIDDEN_NODES, OUTPUT_NODES, LEARNING_RATE)
 
 training_data_file = open("mnist_train.csv", 'r')
 training_data_list = training_data_file.readlines()
 training_data_file.close()
 
-for e in range(epochs):
+for e in range(EPOCHS):
     for record in training_data_list:
         all_values = record.split(',')
         inputs = (np.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
-        targets = np.zeros(output_nodes) + 0.01
+        targets = np.zeros(OUTPUT_NODES) + 0.01
         targets[int(all_values[0])] = 0.99
         n.train(inputs, targets)
         pass
